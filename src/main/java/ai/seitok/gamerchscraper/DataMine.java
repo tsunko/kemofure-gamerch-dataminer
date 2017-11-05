@@ -16,6 +16,7 @@ public class DataMine {
     private final Element parent;
     private List<Jewel> discoveredJewels;
     private Map<String, Exception> errors;
+    private List<Future<Jewel>> miners;
 
     public DataMine(Element parent){
         this.parent = parent;
@@ -37,17 +38,20 @@ public class DataMine {
         }
     }
 
-    public List<Future<Jewel>> mineAllJewelsWithService(ExecutorService exec){
+    public void mineAllJewelsWithService(ExecutorService exec){
         if(discoveredJewels == null) throw new IllegalStateException("Data mine for \"" + parent + "\" hasn't been scouted yet.");
 
-        List<Future<Jewel>> futures = new ArrayList<>();
         errors = new ConcurrentHashMap<>();
+        miners = new ArrayList<>();
 
         for(Jewel jewel : discoveredJewels){
             System.out.println("Scheduled mining operation on " + jewel.getName());
-            futures.add(exec.submit(() -> mineJewel(jewel), jewel));
+            miners.add(exec.submit(() -> mineJewel(jewel), jewel));
         }
-        return futures;
+    }
+
+    public List<Future<Jewel>> getMiners() {
+        return miners;
     }
 
     public Map<String, Exception> getErrors() {
